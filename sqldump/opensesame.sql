@@ -9,6 +9,7 @@ CREATE TABLE `logs` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `permission_id` int(11) NOT NULL,
+  `success` tinyint(4) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `permission_id` (`permission_id`),
@@ -76,4 +77,4 @@ INSERT INTO `user_roles` (`user_id`, `role_id`) VALUES
 (27389,	1),
 (27390,	2);
 
--- 2019-12-10 20:03:33
+-- 2019-12-15 14:00:17
