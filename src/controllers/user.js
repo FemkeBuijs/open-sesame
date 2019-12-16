@@ -4,6 +4,7 @@
  */
 
 import {
+  getUser,
   getUserRole,
   getUserPermissions,
   createUserPermission,
@@ -27,22 +28,43 @@ import {
 export const updatePermissions = async (req, res) => {
   const { userIdToAuthorize, requesterId, permissions } = req.body;
 
-  // Check if the user is trying to update its own permissions
+  // Check if there is a requester id present
+  if (!requesterId) {
+    res.status(403).send('Unknown requester ID');
+    return;
+  }
+
+  // Check if there is a requester id present
+  if (!userIdToAuthorize) {
+    res.status(400).send('User ID to authorize not recognised');
+    return;
+  }
+
+  // Check if the requester is trying to update its own permissions
   if ( userIdToAuthorize === requesterId ) {
-    res.send('You\'re not allowed to update your own permissions you cheeky little monkey');
+    res.status(403).send('You\'re not allowed to update your own permissions you cheeky little monkey');
     return;
   }
 
   try {
-    // Check if the user is allowed to update permissions
+    // Check if the requester is allowed to update permissions
     const roles = await getUserRole(requesterId);
     const intersection = roles.filter(role => authorizedRolesToUpdatePermissions.includes(role.name));
 
     if (!intersection.length) {
-      res.send('You\'re not cool enough to update permissions. Maybe try to get a promotion first.');
+      res.status(403).send('You\'re not cool enough to update permissions. Maybe try to get a promotion first.');
       return;
     }
 
+    // Check if user exists
+    const user = await getUser(userIdToAuthorize);
+
+    if (!user.length) {
+      res.status(400).send('No user found with this ID');
+      return;
+    }
+
+    // Get the current permissions of the user
     const query = await getUserPermissions(userIdToAuthorize);
     const userPermissions = query.map(item => item.permission_id);
 
@@ -55,7 +77,7 @@ export const updatePermissions = async (req, res) => {
     await Promise.all(deletions);
     await Promise.all(insertions);
 
-    res.send(`Authorization updated for user with tag ${userIdToAuthorize}`);
+    res.status(200).send(`Authorization updated for user with tag ${userIdToAuthorize}`);
   } catch(e) {
     res.status(400).send('Something went wrong');
   }
@@ -76,7 +98,8 @@ export const authorizeUser = async (req, res) => {
 
     // If the users permissions includes the requested permissions,
     // using a concept where the function always defaults to 'Access Denied',
-    // for example if the database returns something ambiguous.
+    // for example if the database returns something ambiguous or if the request was
+    // faulty
     if (userPermissions.includes(permissionId)) {
       // Log the event as successful
       createUserLog({
@@ -86,7 +109,7 @@ export const authorizeUser = async (req, res) => {
       });
 
       // Anything can be send here,
-      res.send(200, {
+      res.status(200).send({
         'authorized': true,
         'message': 'The treasure has been unlocked'
       });
@@ -99,7 +122,7 @@ export const authorizeUser = async (req, res) => {
       permissionId,
       success: false,
     });
-    res.send(200, {
+    res.status(200).send({
       'authorized': false,
       'message': 'Access Denied'
     });
@@ -117,13 +140,19 @@ export const authorizeUser = async (req, res) => {
 export const getHistoryLogs = async (req, res) => {
   const { requesterId, userIdForLogs, limit } = req.body;
 
+  // Check if there is a requester id present
+  if (!requesterId) {
+    res.status(403).send('Unknown requester ID');
+    return;
+  }
+
   try {
     // Check if the user is allowed to request logs
     const roles = await getUserRole(requesterId, limit);
     const intersection = roles.filter(role => authorizedRolesForLogs.includes(role.name));
 
     if (!intersection.length && requesterId !== userIdForLogs) {
-      res.send('Nope, no logs for you!');
+      res.status(403).send('Nope, no logs for you!');
       return;
     }
 
