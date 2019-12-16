@@ -1,16 +1,14 @@
-/**
- * @file All functionality regarding the user model
- * Using escaped variables
- */
-import { promisify } from 'util';
 import con from '../utils/database';
 
-// Promisify the connection query to avoid callback hell
-con.query = promisify(con.query);
-
-export const getUser = (userId) => {
+/**
+ * Get user information
+ * @param userId
+ * @param keys The keys of the user object you would like the values from
+ * @returns {Promise<*>}
+ */
+export const getUser = (userId, keys) => {
   return con.query(
-    `SELECT id
+    `SELECT ${keys}
     FROM users
     WHERE id = ?`,
     [userId]
