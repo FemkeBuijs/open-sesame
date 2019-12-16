@@ -2,14 +2,20 @@
  * @file All functionality regarding the user model
  * Using escaped variables
  */
- 
-import mysql from 'mysql';
-import databaseConfig from '../../config/config';
 import { promisify } from 'util';
+import con from '../utils/database';
 
-const con = mysql.createConnection(databaseConfig);
 // Promisify the connection query to avoid callback hell
 con.query = promisify(con.query);
+
+export const getUser = (userId) => {
+  return con.query(
+    `SELECT id
+    FROM users
+    WHERE id = ?`,
+    [userId]
+  );
+};
 
 /**
  * Get a user role
