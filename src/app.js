@@ -21,7 +21,7 @@ app.use(
 app.listen(port, () => console.log(`Sesame can only open when you are listening on port ${port}!`));
 
 // REST API ROUTES
-app.get('/', (req, res) => res.send('It works! Now start hitting those api endpoints in Postman!'));
+app.get('/', (req, res) => res.send('It works! Now start hitting those API endpoints in Postman =)!'));
 app.post('/user/permissions', updatePermissions);
 app.post('/user/authorize', authorizeUser);
 app.get('/history', getHistoryLogs);

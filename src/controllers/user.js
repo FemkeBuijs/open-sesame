@@ -1,3 +1,8 @@
+/**
+ * @file All functionality regarding the user model
+ * Using escaped variables
+ */
+
 import {
   getUserRole,
   getUserPermissions,
@@ -13,9 +18,16 @@ import {
 } from '../utils/permissions';
 
 
+/**
+ * Update a user's permissions
+ * @param req Information regarding the HTTPS request
+ * @param res Used to return the desired response
+ * @returns {String}
+ */
 export const updatePermissions = async (req, res) => {
   const { userIdToAuthorize, requesterId, permissions } = req.body;
 
+  // Check if the user is trying to update its own permissions
   if ( userIdToAuthorize === requesterId ) {
     res.send('You\'re not allowed to update your own permissions you cheeky little monkey');
     return;
@@ -32,10 +44,11 @@ export const updatePermissions = async (req, res) => {
     }
 
     const query = await getUserPermissions(userIdToAuthorize);
-    const currentPermissions = query.map(item => item.permission_id);
+    const userPermissions = query.map(item => item.permission_id);
 
-    const permissionsToDelete = currentPermissions.filter(id => !permissions.includes(id));
-    const permissionsToAdd = permissions.filter(id => !currentPermissions.includes(id));
+    // Check which permissions need to be added and which ones need to be deleted
+    const permissionsToDelete = userPermissions.filter(id => !permissions.includes(id));
+    const permissionsToAdd = permissions.filter(id => !userPermissions.includes(id));
     const deletions = permissionsToDelete.map(id => deleteUserPermission(userIdToAuthorize, id));
     const insertions = permissionsToAdd.map(id => createUserPermission(userIdToAuthorize, id));
 
@@ -48,34 +61,59 @@ export const updatePermissions = async (req, res) => {
   }
 };
 
+/**
+ * Authorize a user
+ * @param req Information regarding the HTTPS request
+ * @param res Used to return the desired response
+ * @returns {String}
+ */
 export const authorizeUser = async (req, res) => {
   const { userId, permissionId } = req.body;
 
   try {
     const query = await getUserPermissions(userId);
-    const currentPermissions = query.map(item => item.permission_id);
+    const userPermissions = query.map(item => item.permission_id);
 
-    if (currentPermissions.includes(permissionId)) {
+    // If the users permissions includes the requested permissions,
+    // using a concept where the function always defaults to 'Access Denied',
+    // for example if the database returns something ambiguous.
+    if (userPermissions.includes(permissionId)) {
+      // Log the event as successful
       createUserLog({
         userId,
         permissionId,
         success: true,
       });
-      res.send('The treasure has been unlocked.');
+
+      // Anything can be send here,
+      res.send(200, {
+        'authorized': true,
+        'message': 'The treasure has been unlocked'
+      });
       return;
     }
 
+    // Log the event as unsuccessful
     createUserLog({
       userId,
       permissionId,
       success: false,
     });
-    res.status(401).send('Access denied');
+    res.send(200, {
+      'authorized': false,
+      'message': 'Access Denied'
+    });
   } catch(e) {
     res.status(400).send('Something went wrong');
   }
 };
 
+/**
+ * Get history logs
+ * @param req Information regarding the HTTPS request
+ * @param res Used to return the desired response
+ * @returns {Array}
+ */
 export const getHistoryLogs = async (req, res) => {
   const { requesterId, userIdForLogs, limit } = req.body;
 
