@@ -5,7 +5,9 @@
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon --exec babel-node src/app.js"
+    "init": "npm install",
+    "dev": "nodemon --exec babel-node src/app.js",
+    "start": "npm run init && npm run dev"
   },
   "repository": {
     "type": "git",
