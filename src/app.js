@@ -7,7 +7,7 @@ const port = process.env.PORT;
 
 import {
   updatePermissions,
-  authorizeUser,
+  authoriseUser,
   getHistoryLogs,
 } from './controllers/user';
 
@@ -23,5 +23,5 @@ app.listen(port, () => console.log(`Sesame can only open when you are listening 
 // REST API ROUTES
 app.get('/', (req, res) => res.send('It works! Now start hitting those API endpoints in Postman =)!'));
 app.post('/user/permissions', updatePermissions);
-app.post('/user/authorize', authorizeUser);
+app.post('/user/authorise', authoriseUser);
 app.get('/history', getHistoryLogs);

@@ -1,7 +1,7 @@
-export const authorizedRolesToUpdatePermissions = [
+export const authorisedRolesToUpdatePermissions = [
   'admin',
 ];
 
-export const authorizedRolesForLogs = [
+export const authorisedRolesForLogs = [
   'admin',
 ];
